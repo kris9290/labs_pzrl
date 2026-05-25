@@ -1,9 +1,7 @@
-// RBT.cpp
 #include "RBT.h"
 #include <iostream>
 #include <limits>
 
-// ====== Конструкторы узла ======
 BinarySearchTree::Node::Node(Key key, Value value, bool color, Node* parent, Node* left, Node* right) 
     : keyValuePair(key, value), color(color), parent(parent), left(left), right(right) {}
 
@@ -13,7 +11,7 @@ bool BinarySearchTree::Node::operator==(const Node& other) const {
     return this->keyValuePair == other.keyValuePair;
 }
 
-// ====== Копирование и освобождение поддеревьев ======
+//Копирование и освобождение поддеревьев
 BinarySearchTree::Node* BinarySearchTree::copySubtree(const Node* other) {
     if (other == nullptr) return nullptr;
     Node* newNode = new Node(*other);
@@ -29,7 +27,7 @@ void BinarySearchTree::freeSubtree(Node* node) {
     delete node;
 }
 
-// ====== Конструкторы и деструктор дерева ======
+//Конструкторы и деструктор дерева
 BinarySearchTree::BinarySearchTree(const BinarySearchTree &other) 
     : _root(copySubtree(other._root)), _size(other._size) {}
 
@@ -58,7 +56,7 @@ BinarySearchTree::~BinarySearchTree() {
     freeSubtree(_root);
 }
 
-// ====== Вспомогательные методы узла ======
+//Вспомогательные методы узла
 void BinarySearchTree::Node::rotateLeft() {
     Node* newParent = this->right;
 
@@ -294,7 +292,7 @@ void BinarySearchTree::Node::erase(const Key& key, Node** rootPtr) {
     return;
 }
 
-// ====== Публичные методы дерева ======
+//Публичные методы дерева
 void BinarySearchTree::insert(const Key &key, const Value &value) {
     if (!_root) {
         _root = new Node(key, value);
@@ -450,7 +448,7 @@ size_t BinarySearchTree::max_height() const {
     return _root->getMaxHeight();
 }
 
-// ====== Итераторы ======
+//Итераторы
 BinarySearchTree::Iterator::Iterator(Node *node) : _node(node) {}
 
 std::pair<Key, Value>& BinarySearchTree::Iterator::operator*() {
