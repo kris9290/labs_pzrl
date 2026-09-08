@@ -98,7 +98,7 @@ void SudokuCore::updateMasks()
 
 void SudokuCore::loadFromFile(const std::string& filename)
 {
-	std::iftream file(filename);
+    std::ifstream file(filename);
 	if (!file.is_open())
 	{
 		throw std::runtime_error("Не удалось открыть файл " + filename);
@@ -110,12 +110,12 @@ void SudokuCore::loadFromFile(const std::string& filename)
 	int row = 0;
 	int col = 0;
 
-	while(file>>ch && row<9)
+    while(file>>ch && row<9)
 	{
 		if(ch>='1' && ch<='9')
 		{
 			int value = ch - '0';
-			Cell cell(row, col, value);
+            setCell(row, col, value);
 			col+=1;
 		}
 		else if (ch=='0')
@@ -125,7 +125,7 @@ void SudokuCore::loadFromFile(const std::string& filename)
 		}
 		else
 		{
-			continue
+            continue;
 		}
 		if (col==9)
 		{
