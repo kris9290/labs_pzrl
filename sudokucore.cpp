@@ -1,3 +1,4 @@
+#include<fstream>
 #include "sudokucore.h"
 SudokuCore::SudokuCore()
 {
@@ -94,4 +95,50 @@ void SudokuCore::updateMasks()
 
 	}
 }
+
+void SudokuCore::loadFromFile(const std::string& filename)
+{
+	std::iftream file(filename);
+	if (!file.is_open())
+	{
+		throw std::runtime_error("Не удалось открыть файл " + filename);
+	}
+
+	clearBoard();
+
+	char ch;
+	int row = 0;
+	int col = 0;
+
+	while(file>>ch && row<9)
+	{
+		if(ch>='1' && ch<='9')
+		{
+			int value = ch - '0';
+			Cell cell(row, col, value);
+			col+=1;
+		}
+		else if (ch=='0')
+		{
+			setCell(row, col, 0);
+			col+=1;
+		}
+		else
+		{
+			continue
+		}
+		if (col==9)
+		{
+			row+=1;
+			col=0;
+		}
+	}
+	file.close();
+	if (row!=9)
+	{
+		clearBoard();
+		throw std::invalid_argument("Файл содержит неверный формат поля");
+	}
+}
+
 

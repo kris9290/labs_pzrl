@@ -4,6 +4,7 @@
 #include <vector>
 #include <bitset>
 #include <stdexcept>
+#include<string>
 
 struct CellPos{
 	int row;
@@ -23,6 +24,8 @@ public:
 	
 	std::bitset<10> getCellCandidates(int row, int col) const;
 	bool isValidMove(int row, int col, int value) const; 
+
+	void loadFromFile(const std::string& filename);
 private:
 	std::vector<std::vector<int>> m_board;
 
