@@ -15,6 +15,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // Создаем центральный виджет и сетку
     QWidget *centralWidget = new QWidget(this);
     QVBoxLayout *mainLayout = new QVBoxLayout(centralWidget);
+
     QGridLayout *gridLayout = new QGridLayout(centralWidget);
     gridLayout->setSpacing(2);
 
@@ -59,12 +60,22 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     QHBoxLayout *buttonLayout = new QHBoxLayout();
     QPushButton *btnLoad = new QPushButton("Загрузить файл", this);
+    QPushButton *btnHint = new QPushButton("Подсказать ход", this);
+    QPushButton *btnCheck = new QPushButton("Проверить единственность", this);
+    QPushButton *btnSolve = new QPushButton("Решить всё", this);
     QPushButton *btnClear = new QPushButton("Очистить поле", this);
+
     buttonLayout->addWidget(btnLoad);
+    buttonLayout->addWidget(btnHint);
+    buttonLayout->addWidget(btnCheck);
+    buttonLayout->addWidget(btnSolve);
     buttonLayout->addWidget(btnClear);
     mainLayout->addLayout(buttonLayout);
 
     connect(btnLoad, &QPushButton::clicked, this, &MainWindow::onLoadFileClicked);
+    connect(btnHint, &QPushButton::clicked, this, &MainWindow::onHintClicked);
+    connect(btnCheck, &QPushButton::clicked, this, &MainWindow::onCheckUniqueClicked);
+    connect(btnSolve, &QPushButton::clicked, this, &MainWindow::onSolveClicked);
     connect(btnClear, &QPushButton::clicked, this, &MainWindow::onClearClicked);
 
     setCentralWidget(centralWidget);
@@ -80,6 +91,8 @@ MainWindow::~MainWindow()
 //Обработка ввода пользователя
 void MainWindow::onCellChanged(int row, int col)
 {
+    if(m_isUpdating) return;
+
     QLineEdit *cell = m_cells[row][col];
     int top = (row % 3 == 0) ? 3 : 1;
     int left = (col % 3 == 0) ? 3 : 1;
@@ -109,9 +122,39 @@ void MainWindow::onCellChanged(int row, int col)
     } else
     {
         cell->setStyleSheet(baseStyle + "background-color: #FFC2C2; color: #B31C1C;");
+        m_errorsCount++;
+
+        if (m_errorsCount >= 3) {
+            QMessageBox::critical(this, "Игра окончена",
+                                  "Вы совершили 3 ошибки. Попробуйте начать заново! ❌");
+            m_gameCore.clearBoard(); // Очищаем поле в памяти
+            updateScreenFromCore();              // Сбрасываем экран
+            m_errorsCount = 0;       // Обнуляем счётчик
+        }
     }
 
     cell->blockSignals(false);
+    bool allFilled = true;
+    bool hasErrors = false;
+
+    for (int r = 0; r < 9; ++r) {
+        for (int c = 0; c < 9; ++c) {
+            int val = m_gameCore.getCell(r, c);
+            if (val == 0) {
+                allFilled = false; // Нашли пустую клетку — игра ещё продолжается
+            }
+            // Проверяем стиль ячейки: если в ней есть красный цвет текста, значит там ошибка
+            if (m_cells[r][c]->styleSheet().contains("color: #B31C1C;")) {
+                hasErrors = true;
+            }
+        }
+    }
+
+    // Если всё заполнено и нет ошибок — выводим окно победы!
+    if (allFilled && !hasErrors) {
+        QMessageBox::information(this, "Победа!",
+                                 "Поздравляем! Вы успешно и без ошибок решили это Судоку! 🎉");
+    }
 }
 //Загрузка через всплывающее окно выбора файла
 void MainWindow::onLoadFileClicked()
@@ -123,7 +166,8 @@ void MainWindow::onLoadFileClicked()
 		m_gameCore.loadFromFile(fileName.toStdString());
 		updateScreenFromCore();
 		QMessageBox::information(this, "Успех", "Судоку успешно загружено");
-	}
+        m_errorsCount = 0;
+    }
 	catch(const std::exception& e)
 	{
 		QMessageBox::critical(this, "Ошибка", e.what());
@@ -134,29 +178,80 @@ void MainWindow::onClearClicked()
 {
 	m_gameCore.clearBoard();
 	updateScreenFromCore();
+    m_errorsCount = 0;
+}
+
+void MainWindow::onHintClicked()
+{
+    SudokuCore solver = m_gameCore;
+    if (solver.solve()){
+        for (int r=0; r<9; r++){
+            for (int c=0; c<9; c++){
+                if (m_gameCore.getCell(r,c)==0){
+                    m_cells[r][c]->setText(QString::number(solver.getCell(r,c)));
+                    return;
+                }
+            }
+        }
+    }
+    else{
+        QMessageBox::warning(this, "Внимание","Текущее поле не имеет решений. Удалите ошибочные цифры.");
+    }
+}
+
+void MainWindow::onCheckUniqueClicked(){
+    if (m_gameCore.hasUniqueSolution()){
+        QMessageBox::information(this, "Анализ", "Это Судоку имеет ровно 1 уникальное решение!");
+    }
+    else{
+        QMessageBox::warning(this, "Анализ", "Судоку имеет несколько решений или не имеет их вовсе.");
+    }
+}
+
+void MainWindow::onSolveClicked(){
+    if(m_gameCore.solve())
+        updateScreenFromCore();
+    else
+        QMessageBox::warning(this,"Ошибка", "Невозможно решить данную конфигурацию.");
 }
 
 //Обновление экрана
-void MainWindow::updateScreenFromCore()
-{
-	for (int r=0; r<9; r++)
-	{
-		for (int c=0; c<9; c++)
-		{
-			int val = m_gameCore.getCell(r, c);
-            m_cells[r][c]->blockSignals(true);
-			if(val==0)
-			{
-				m_cells[r][c]->clear();
-				m_cells[r][c]->setStyleSheet(m_cells[r][c]->styleSheet() + "background-color: #FFFFF; color: black;");
-			}
-			else
-			{
-				m_cells[r][c]->setText(QString::number(val));
-				m_cells[r][c]->setStyleSheet(m_cells[r][c]->styleSheet() + "background-color: #F2F2F2; color: #444444;");
-			}
-            m_cells[r][c]->blockSignals(false);
-		}
-	}
-}
+void MainWindow::updateScreenFromCore() {
+    m_isUpdating = true; // Наш флаг-предохранитель
 
+    // Обнуляем счетчик ошибок при начале новой игры (если добавляли систему жизней)
+    m_errorsCount = 0;
+
+    for (int r = 0; r < 9; ++r) {
+        for (int c = 0; c < 9; ++c) {
+            m_cells[r][c]->blockSignals(true); // Блокируем сигналы
+
+            int val = m_gameCore.getCell(r, c); // Получаем значение из ядра
+
+            // 1. ЗАНОВО вычисляем чистые рамки 3х3 для этой ячейки
+            int top = (r % 3 == 0) ? 3 : 1;
+            int left = (c % 3 == 0) ? 3 : 1;
+            int bottom = (r == 8) ? 3 : 1;
+            int right = (c == 8) ? 3 : 1;
+
+            QString baseStyle = QString(
+                                    "border-style: solid; border-color: #2c3e50; "
+                                    "border-width: %1px %2px %3px %4px; "
+                                    ).arg(top).arg(right).arg(bottom).arg(left);
+
+            if (val == 0) {
+                m_cells[r][c]->clear(); // Стираем текст
+                // Устанавливаем ЧИСТЫЙ БЕЛЫЙ фон без примесей старых стилей
+                m_cells[r][c]->setStyleSheet(baseStyle + "background-color: #FFFFFF; color: #000000;");
+            } else {
+                m_cells[r][c]->setText(QString::number(val)); // Ставим цифру
+                // Устанавливаем СЕРЫЙ фон для стартовых цифр (как в настоящих кроссвордах)
+                m_cells[r][c]->setStyleSheet(baseStyle + "background-color: #F2F4F4; color: #2C3E50;");
+            }
+
+            m_cells[r][c]->blockSignals(false); // Возвращаем сигналы
+        }
+    }
+
+    m_isUpdating = false; // Отключаем предохранитель
+}

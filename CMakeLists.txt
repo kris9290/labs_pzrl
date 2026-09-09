@@ -12,19 +12,23 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
+set(CORE_SOURCES
+        sudokucore.h
+        sudokucore.cpp
+)
+
 set(PROJECT_SOURCES
         main.cpp
         mainwindow.cpp
         mainwindow.h
         mainwindow.ui
-        sudokucore.h
-        sudokucore.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(SudokuLight
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        ${CORE_SOURCES}
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET SudokuLight APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -34,12 +38,15 @@ else()
     if(ANDROID)
         add_library(SudokuLight SHARED
             ${PROJECT_SOURCES}
+            ${CORE_SOURCES}
         )
 # Define properties for Android with Qt 5 after find_package() calls as:
 #    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
     else()
         add_executable(SudokuLight
             ${PROJECT_SOURCES}
+            ${CORE_SOURCES}
+
         )
     endif()
 endif()
@@ -58,6 +65,11 @@ set_target_properties(SudokuLight PROPERTIES
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
+)
+
+add_executable(SudokuConsole
+    console_main.cpp    # Ваша консольная точка входа
+    ${CORE_SOURCES}     # Подключаем ТО ЖЕ САМОЕ ядро, но БЕЗ графики Qt
 )
 
 include(GNUInstallDirs)

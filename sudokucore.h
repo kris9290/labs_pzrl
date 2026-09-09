@@ -26,6 +26,8 @@ public:
 	bool isValidMove(int row, int col, int value) const; 
 
 	void loadFromFile(const std::string& filename);
+    bool solve();
+    bool hasUniqueSolution();
 private:
 	std::vector<std::vector<int>> m_board;
 
@@ -34,5 +36,6 @@ private:
 	std::vector<std::bitset<10>> m_sectorMasks;
 
 	void updateMasks();
+    int countSolutions(int &limit);
 };
 #endif
