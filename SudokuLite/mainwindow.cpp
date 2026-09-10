@@ -150,7 +150,7 @@ void MainWindow::onCellChanged(int row, int col)
         }
     }
 
-    // Если всё заполнено и нет ошибок — выводим окно победы!
+    // Если всё заполнено и нет ошибок — выводим окно победы
     if (allFilled && !hasErrors) {
         QMessageBox::information(this, "Победа!",
                                  "Поздравляем! Вы успешно и без ошибок решили это Судоку! 🎉");
@@ -217,14 +217,14 @@ void MainWindow::onSolveClicked(){
 
 //Обновление экрана
 void MainWindow::updateScreenFromCore() {
-    m_isUpdating = true; // Наш флаг-предохранитель
+    m_isUpdating = true; 
 
-    // Обнуляем счетчик ошибок при начале новой игры (если добавляли систему жизней)
+    // Обнуляем счетчик ошибок при начале новой игры
     m_errorsCount = 0;
 
     for (int r = 0; r < 9; ++r) {
         for (int c = 0; c < 9; ++c) {
-            m_cells[r][c]->blockSignals(true); // Блокируем сигналы
+            m_cells[r][c]->blockSignals(true); 
 
             int val = m_gameCore.getCell(r, c); // Получаем значение из ядра
 
@@ -241,15 +241,15 @@ void MainWindow::updateScreenFromCore() {
 
             if (val == 0) {
                 m_cells[r][c]->clear(); // Стираем текст
-                // Устанавливаем ЧИСТЫЙ БЕЛЫЙ фон без примесей старых стилей
+                // Устанавливаем чистый белый фон без примесей старых стилей
                 m_cells[r][c]->setStyleSheet(baseStyle + "background-color: #FFFFFF; color: #000000;");
             } else {
                 m_cells[r][c]->setText(QString::number(val)); // Ставим цифру
-                // Устанавливаем СЕРЫЙ фон для стартовых цифр (как в настоящих кроссвордах)
+                // Устанавливаем серый фон для стартовых цифр 
                 m_cells[r][c]->setStyleSheet(baseStyle + "background-color: #F2F4F4; color: #2C3E50;");
             }
 
-            m_cells[r][c]->blockSignals(false); // Возвращаем сигналы
+            m_cells[r][c]->blockSignals(false); 
         }
     }
 
