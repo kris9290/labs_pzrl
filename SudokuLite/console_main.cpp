@@ -16,7 +16,7 @@ int main(){
 	std::cout<<"--- Консольный модуль Судоку ---\n";
 	SudokuCore game;
 	try{
-		game.loadFromFile("/home/kris9290/SudokuLight/test.txt");
+		game.loadFromFile("/home/kris9290/labs_pzrl/SudokuLite/test.txt");
 		std::cout<<"Исходное поле:\n";
 		printBoard(game);
 		if (game.solve()){

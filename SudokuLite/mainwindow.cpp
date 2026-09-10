@@ -126,7 +126,7 @@ void MainWindow::onCellChanged(int row, int col)
 
         if (m_errorsCount >= 3) {
             QMessageBox::critical(this, "Игра окончена",
-                                  "Вы совершили 3 ошибки. Попробуйте начать заново! ❌");
+                                  "Вы совершили 3 ошибки. Попробуйте начать заново!");
             m_gameCore.clearBoard(); // Очищаем поле в памяти
             updateScreenFromCore();              // Сбрасываем экран
             m_errorsCount = 0;       // Обнуляем счётчик
@@ -153,7 +153,7 @@ void MainWindow::onCellChanged(int row, int col)
     // Если всё заполнено и нет ошибок — выводим окно победы
     if (allFilled && !hasErrors) {
         QMessageBox::information(this, "Победа!",
-                                 "Поздравляем! Вы успешно и без ошибок решили это Судоку! 🎉");
+                                 "Поздравляем! Вы успешно и без ошибок решили это Судоку!");
     }
 }
 //Загрузка через всплывающее окно выбора файла
